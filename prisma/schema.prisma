@@ -1,0 +1,88 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  username String @unique
+  password String
+  role Role @default(user)
+  player Player?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Player {
+  id Int @id @default(autoincrement())
+  name String
+  nick_name String
+  game_scores GameScore[]
+  games Game[]
+  goals Goal[]
+  assistances Assistance[]
+  user User @relation(fields: [user_id], references: [id])
+  user_id Int @unique
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model GameScore {
+  id Int @id @default(autoincrement())
+  player Player @relation(fields: [player_id], references: [id])
+  player_id Int
+  game Game @relation(fields: [game_id], references: [id])
+  game_id Int
+  goals Goal[]
+  assistances Assistance[]
+  puskas Boolean @default(false)
+  ninja Boolean @default(false)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([game_id, player_id])
+}
+
+model Game {
+  id Int @id @default(autoincrement())
+  game_scores GameScore[]
+  players Player[]
+  game_date DateTime
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Goal {
+  id Int @id @default(autoincrement())
+  player Player @relation(fields: [player_id], references: [id])
+  player_id Int
+  game_score GameScore @relation(fields: [game_score_id], references: [id])
+  game_score_id Int
+  assistance Assistance?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model Assistance {
+  id Int @id @default(autoincrement())
+  player Player @relation(fields: [player_id], references: [id])
+  player_id Int
+  goal Goal @relation(fields: [goal_id], references: [id])
+  goal_id Int @unique
+  game_score GameScore @relation(fields: [game_score_id], references: [id])
+  game_score_id Int
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+enum Role {
+  user
+  admin
+}
